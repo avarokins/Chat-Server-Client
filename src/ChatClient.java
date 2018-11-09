@@ -117,7 +117,6 @@ final class ChatClient {
                     client.socket.close();
                 } catch(Exception e){
                     e.printStackTrace();
-
                 }
 
                 break;
