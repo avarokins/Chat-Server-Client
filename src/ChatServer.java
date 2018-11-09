@@ -16,6 +16,10 @@ final class ChatServer {
         this.port = port;
     }
 
+    private ChatServer() {
+        port = 1500;
+    }
+
     /*
      * This is what starts the ChatServer.
      * Right now it just creates the socketServer and adds a new ClientThread to a list to be handled
@@ -72,6 +76,34 @@ final class ChatServer {
             }
         }
 
+        private boolean writeMessage(String msg) {
+
+            ChatMessage obj = new ChatMessage(msg,0);
+
+            try {
+                sOutput.writeObject(obj);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        private synchronized void remove (int id) {
+            for(int i = 0 ; i< clients.size(); i++) {
+                if(id == clients.get(i).id)
+                    clients.remove(i);
+            }
+        }
+
+        private synchronized void broadcast (String message) {
+
+            for(int i = 0 ; i < clients.size() ; i++ ) {
+                clients.get(i).writeMessage(message);
+            }
+            System.out.println(message);
+        }
+
+
         /*
          * This is what the client thread actually runs.
          */
@@ -80,10 +112,26 @@ final class ChatServer {
             // Read the username sent to you by client
             try {
                 cm = (ChatMessage) sInput.readObject();
+
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
             System.out.println(username + ": Ping");
+
+
+           try {
+               if (cm.type == 0) {
+                   writeMessage(cm.message);
+               } else {
+                   socket.close();
+                   sInput.close();
+                   sOutput.close();
+               }
+
+           } catch (Exception e) {e.printStackTrace();}
+
+            broadcast(cm.message);
+
 
 
             // Send message back to the client

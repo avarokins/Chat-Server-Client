@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.Scanner;
 
 final class ChatClient {
     private ObjectInputStream sInput;
@@ -17,6 +18,20 @@ final class ChatClient {
         this.port = port;
         this.username = username;
     }
+
+    private ChatClient(String username, int port) {
+        this.server = "localhost";
+        this.port = port;
+        this.username = username;
+    }
+
+    private ChatClient(String username) {
+        this.server = "localhost";
+        this.port = 1500;
+        this.username = username;
+    }
+
+
 
     /*
      * This starts the Chat Client
@@ -83,8 +98,34 @@ final class ChatClient {
         ChatClient client = new ChatClient("localhost", 1500, "CS 180 Student");
         client.start();
 
-        // Send an empty message to the server
-        client.sendMessage(new ChatMessage());
+        Scanner sc = new Scanner(System.in);
+
+        while(true) {
+
+            String temp = sc.nextLine();
+
+            // Send an empty message to the server
+
+
+            if(!temp.equals("/logout"))
+            client.sendMessage(new ChatMessage(temp,0));
+            else {
+                client.sendMessage(new ChatMessage(temp, 1));
+                try {
+                    client.sInput.close();
+                    client.sOutput.close();
+                    client.socket.close();
+                } catch(Exception e){
+                    e.printStackTrace();
+
+                }
+
+                break;
+            }
+
+        }
+
+
     }
 
 
