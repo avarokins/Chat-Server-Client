@@ -43,7 +43,7 @@ public class ChatFilter {
                     replacement += "*";
                 }
 
-                msg.replace(words.get(i),replacement);
+                msg = msg.replaceAll(words.get(i),replacement);
             }
         }
 

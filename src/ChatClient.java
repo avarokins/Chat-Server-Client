@@ -8,30 +8,16 @@ final class ChatClient {
     private ObjectInputStream sInput;
     private ObjectOutputStream sOutput;
     private Socket socket;
-    static int a;
+
     private final String server;
     private final String username;
     private final int port;
+    static int a;
 
     private ChatClient(String server, int port, String username) {
         this.server = server;
         this.port = port;
         this.username = username;
-        a=1;
-    }
-
-    private ChatClient(String username, int port) {
-        this.server = "localhost";
-        this.port = port;
-        this.username = username;
-        a=1;
-    }
-
-    private ChatClient(String username) {
-        this.server = "localhost";
-        this.port = 1500;
-        this.username = username;
-        a=1;
     }
 
     /*
@@ -40,9 +26,12 @@ final class ChatClient {
     private boolean start() {
         // Create a socket
         try {
+            a = 1;
             socket = new Socket(server, port);
+            System.out.println("Connection accepted " + socket.getRemoteSocketAddress().toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("No server found!");
+            System.exit(0);
         }
 
         // Create your input and output streams
@@ -72,7 +61,7 @@ final class ChatClient {
     /*
      * This method is used to send a ChatMessage Objects to the server
      */
-    private synchronized void sendMessage(ChatMessage msg) {
+    private void sendMessage(ChatMessage msg) {
         try {
             sOutput.writeObject(msg);
         } catch (IOException e) {
@@ -95,73 +84,58 @@ final class ChatClient {
     public static void main(String[] args) {
         // Get proper arguments and override defaults
 
-        // Create your client and start it
+        ChatClient client;
 
 
-
-        ChatClient chatClient;
-
-        // Create your client and start it
-
-        int len = args.length;
-
-        switch (len) {
-
-            case 1:
-                chatClient = new ChatClient(args[0]);
-                break;
-
-            case 2:
-                int temp = Integer.parseInt(args[1]);
-                chatClient = new ChatClient(args[0], temp);
-                break;
-
-            case 3:
-                int temp2 = Integer.parseInt(args[1]);
-                chatClient = new ChatClient(args[2], temp2, args[0]);
-                break;
-
-            default:
-                chatClient = new ChatClient("localhost", 1500, "Bob");
-
+        if (args.length == 0) {
+            client = new ChatClient("localhost", 1500, "Anonymous");
+        } else if (args.length == 1) {
+            client = new ChatClient("localhost", 1500, args[0]);
+        } else if (args.length == 2) {
+            client = new ChatClient("localhost", Integer.parseInt(args[1]), args[0]);
+        } else {
+            client = new ChatClient(args[2], Integer.parseInt(args[1]), args[0]);
         }
 
 
+        // Create your client and start it
 
-        chatClient.start();
-        System.out.println("Connection accepted " + chatClient.server);
+        client.start();
+
+        Scanner sc = new Scanner(System.in);
 
         while (true) {
 
 
-
-        Scanner sc = new Scanner(System.in);
-            String temp = sc.nextLine();
-
-            // Send an empty message to the server
+            String line = sc.nextLine();
 
 
-            if(!temp.equals("/logout")) {
-                chatClient.sendMessage(new ChatMessage(temp, 0));
-            }
+            if (line.equals("/logout")) {
 
-            //else if() {
+                client.sendMessage(new ChatMessage(line, 1));
+                System.out.println("Server has closed the connection");
+                a = 0;
 
-             else {
-                //client.sendMessage(new ChatMessage(temp, 1));
                 try {
-                    chatClient.sInput.close();
-                    chatClient.sOutput.close();
-                    chatClient.socket.close();
-                    a = 0;
-                    System.out.println("Server has closed the connection");
-                } catch(Exception e){
-                    e.printStackTrace();
+                    client.socket.close();
+                    client.sInput.close();
+                    client.sOutput.close();
+
+                } catch (Exception e) {
                 }
+
                 break;
+
             }
+
+
+            client.sendMessage(new ChatMessage(line, 0));
+
         }
+
+
     }
+
 
     /*
      * This is a private class inside of the ChatClient
@@ -170,16 +144,22 @@ final class ChatClient {
      */
     private final class ListenFromServer implements Runnable {
         public void run() {
-            try {
-                while (true) {
-                    String msg = sInput.readObject().toString();
+
+            while (a == 1) {
+
+                try {
+                    String msg = (String) sInput.readObject();
+
                     System.out.print(msg);
 
-                    if(a == 0)
-                        break;
 
+                    if (msg.equals("Username already exists!\nExiting!")) {
+                        System.exit(0);
+                    }
+
+
+                } catch (IOException | ClassNotFoundException e) {
                 }
-            } catch (IOException | ClassNotFoundException e) {
             }
         }
     }

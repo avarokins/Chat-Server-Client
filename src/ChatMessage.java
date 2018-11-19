@@ -20,8 +20,9 @@ final class ChatMessage implements Serializable {
 
     public ChatMessage(String message, int type) {
 
-        this.message = message;
         this.type = type;
+        this.message = message;
+        recipient = null;
     }
 
     public String getMessage() {
