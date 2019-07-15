@@ -8,12 +8,25 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Chat Server
+ *
+ * This is a sever-client based chat application.
+ *
+ * @author Avarokin Raj Saini, lab sec 8
+ * @author Drishti Agarwala, lab sec 8
+ *
+ * @version September 22, 2018
+ */
+
+
 final class ChatServer {
     private static int uniqueId = 0;
     private final List<ClientThread> clients = new ArrayList<>();
     private final int port;
     private String filename;
     int a = 0;
+    public static String fName;
 
 
     private synchronized void broadcast(String message) {
@@ -103,50 +116,22 @@ final class ChatServer {
                 Runnable r = new ClientThread(socket, uniqueId++);
                 Thread t = new Thread(r);
 
-                System.out.println(((ClientThread) r).username + " just connected.");
+                System.out.println(sdf.format(date) + " " + ((ClientThread) r).username + " just connected.");
 
-                for (int i = 0 ; i < clients.size() ; i++ ) {
+                for (int i = 0; i < clients.size(); i++) {
                     if (clients.get(i).username.equals(((ClientThread) r).username)) {
-                            ((ClientThread) r).sOutput.writeObject("Username already exists!\nExiting!");
-                            ((ClientThread) r).close();
-                            break;
+                        ((ClientThread) r).sOutput.writeObject("Username already exists!\nExiting!");
+                        ((ClientThread) r).close();
+                        break;
                     }
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                 clients.add((ClientThread) r);
 
 
-
                 t.start();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) {}
     }
 
     /*
@@ -160,10 +145,13 @@ final class ChatServer {
 
         if (args.length == 0) {
             server = new ChatServer(1500, "badwords.txt");
+            fName = "badwords.txt";
         } else if (args.length == 1) {
             server = new ChatServer(Integer.parseInt(args[0]), "badwords.txt");
+            fName = "badwords.txt";
         } else {
             server = new ChatServer(Integer.parseInt(args[0]), args[1]);
+            fName = args[1];
         }
         server.start();
     }
@@ -225,9 +213,7 @@ final class ChatServer {
                 sOutput = new ObjectOutputStream(socket.getOutputStream());
                 sInput = new ObjectInputStream(socket.getInputStream());
                 username = (String) sInput.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+            } catch (IOException | ClassNotFoundException e) {}
 
         }
 
@@ -246,7 +232,20 @@ final class ChatServer {
                     cm = (ChatMessage) sInput.readObject();
 
                 } catch (IOException | ClassNotFoundException e) {
-                    e.printStackTrace();
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                    Date date = new Date();
+
+                    System.out.println(sdf.format(date) + " " + username + " just disconnected!");
+
+                    for(int i = 0 ; i < clients.size() ; i++ ) {
+                        if(clients.get(i).username.equals(username)) {
+                            clients.remove(i);
+                            break;
+                        }
+                    }
+
+                    break;
                 }
 
                 String[] words = cm.getMessage().split(" ");
@@ -266,29 +265,49 @@ final class ChatServer {
 
                 } else if (words[0].equals("/msg")) {
 
-
-                    for (int i = 2; i < words.length; i++) {
-                        if (i == words.length - 1)
-                            msg1 = msg1 + words[i];
-                        else
-                            msg1 = msg1 + words[i] + " ";
-                    }
-
-                    msg1 = username + " - > " + words[1] + " : " + msg1;
+                    boolean enter = false;
 
                     for (int i = 0; i < clients.size(); i++) {
-                        if (clients.get(i).username.equals(username))
-                            a = i;
+                        if (clients.get(i).username.equals(words[1]))
+                            enter = true;
                     }
 
-                    if (!words[1].equals(username))
-                        directMessage(msg1, words[1]);
-                    else {
-
+                    if (!enter) {
                         try {
-                            sOutput.writeObject("Cannot direct message yourself!");
+
+
+                            sOutput.writeObject(sdf.format(date) + " The recipient does not exist!\n");
                         } catch (Exception e) {
                         }
+
+
+                    } else {
+
+
+                        for (int i = 2; i < words.length; i++) {
+                            if (i == words.length - 1)
+                                msg1 = msg1 + words[i];
+                            else
+                                msg1 = msg1 + words[i] + " ";
+                        }
+
+                        msg1 = username + " - > " + words[1] + " : " + msg1;
+
+                        for (int i = 0; i < clients.size(); i++) {
+                            if (clients.get(i).username.equals(username))
+                                a = i;
+                        }
+
+                        if (!words[1].equals(username))
+                            directMessage(msg1, words[1]);
+                        else {
+
+                            try {
+                                sOutput.writeObject(sdf.format(date) + " Cannot direct message yourself!\n");
+                            } catch (Exception e) {
+                            }
+                        }
+
                     }
 
                 } else if (words[0].equals("/list") && words.length == 1) {
@@ -298,7 +317,7 @@ final class ChatServer {
                             //
 
                             try {
-                                sOutput.writeObject(clients.get(i).username +"\n");
+                                sOutput.writeObject(clients.get(i).username + "\n");
                             } catch (Exception e) {
                             }
                             //
@@ -309,14 +328,14 @@ final class ChatServer {
                 } else {
 
 
-                    ChatFilter cf = new ChatFilter("badwords.txt");
+                    ChatFilter cf = new ChatFilter(fName);
 
                     String msg = cf.filter(cm.getMessage());
 
                     System.out.println(sdf.format(date) + " " + username + " : " + msg);
 
                     // Send message back to the client
-                    broadcast(username + " : " + cm.getMessage());
+                    broadcast(username + " : " + msg);
                 }
             }
 

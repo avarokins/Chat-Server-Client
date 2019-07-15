@@ -2,7 +2,21 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
+
+/**
+ * Chat Server
+ *
+ * This is a sever-client based chat application.
+ *
+ * @author Avarokin Raj Saini, lab sec 8
+ * @author Drishti Agarwala, lab sec 8
+ *
+ * @version September 22, 2018
+ */
+
 
 final class ChatClient {
     private ObjectInputStream sInput;
@@ -128,11 +142,9 @@ final class ChatClient {
 
             }
 
-
             client.sendMessage(new ChatMessage(line, 0));
 
         }
-
 
     }
 
@@ -151,6 +163,9 @@ final class ChatClient {
                     String msg = (String) sInput.readObject();
 
                     System.out.print(msg);
+
+                    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                    Date date = new Date();
 
 
                     if (msg.equals("Username already exists!\nExiting!")) {

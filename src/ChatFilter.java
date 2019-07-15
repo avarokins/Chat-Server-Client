@@ -3,9 +3,21 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 
+/**
+ * Chat Server
+ *
+ * This is a sever-client based chat application.
+ *
+ * @author Avarokin Raj Saini, lab sec 8
+ * @author Drishti Agarwala, lab sec 8
+ *
+ * @version September 22, 2018
+ */
+
+
 public class ChatFilter {
 
-    ArrayList <String> words = new ArrayList<>();
+    ArrayList<String> words = new ArrayList<>();
 
     public ChatFilter(String badWordsFileName) {
 
@@ -16,38 +28,37 @@ public class ChatFilter {
 
             String line;
 
-            while(true) {
+            while (true) {
 
                 line = br.readLine();
 
-                if(line == null)
+                if (line == null)
                     break;
 
                 words.add(line);
 
             }
 
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
 
     }
 
     public String filter(String msg) {
 
-        for (int i = 0 ; i < words.size() ; i++ ) {
+        for (int i = 0; i < words.size(); i++) {
 
-            String replacement ="";
+            String replacement = "";
 
-            if(msg.contains(words.get(i))) {
-                for (int j = 0 ; j < words.get(i).length() ; j++ ) {
+
+                for (int j = 0; j < words.get(i).length(); j++) {
                     replacement += "*";
                 }
 
-                msg = msg.replaceAll(words.get(i),replacement);
+                String hi = words.get(i);
+                msg = msg.replaceAll("(?i) "+ hi, replacement);
             }
-        }
-
-
 
         return msg;
     }

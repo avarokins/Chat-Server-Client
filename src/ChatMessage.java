@@ -1,5 +1,17 @@
 import java.io.Serializable;
 
+/**
+ * Chat Server
+ *
+ * This is a sever-client based chat application.
+ *
+ * @author Avarokin Raj Saini, lab sec 8
+ * @author Drishti Agarwala, lab sec 8
+ *
+ * @version September 22, 2018
+ */
+
+
 final class ChatMessage implements Serializable {
     private static final long serialVersionUID = 6898543889087L;
 
